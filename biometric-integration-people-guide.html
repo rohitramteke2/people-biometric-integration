@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biometric Integration · Zoho People Plugin Method</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Inter:wght@400;450;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============ TOKENS ============ */
+:root{
+  --font-ui:'Geist','Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --font-body:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+  --font-mono:'Geist Mono','SFMono-Regular',ui-monospace,Menlo,Consolas,monospace;
+  --r:10px; --r-lg:14px;
+  --nav-w:270px; --toc-w:230px; --content:760px;
+  --accent:#ff5a5f; --accent-ink:#fff;
+}
+html[data-theme="dark"]{
+  --canvas:#0a0c10; --surface:#0e1117; --raised:#161b24; --raised-2:#1c222d;
+  --line:#1f2632; --line-soft:#171d27;
+  --ink:#e8ebf0; --ink-mid:#aab3c0; --ink-soft:#717c8c; --ink-faint:#4d5666;
+  --accent:#ff6b70; --accent-soft:#2a1417; --accent-line:#42201f;
+  --code-bg:#0c0f15; --code-head:#10141b; --code-ink:#dfe5ee;
+  --c-key:#7aa2ff; --c-str:#f0b86e; --c-com:#5d6b7e; --c-fn:#56d4a0;
+  --kbd-bg:#1a212c; --kbd-line:#2a323f;
+  --ok:#3ecf8e; --ok-soft:#0f2a1e;
+  --warn:#f0b86e; --warn-soft:#2a2113; --warn-line:#3d3018;
+  --info:#7aa2ff; --info-soft:#141d2e; --info-line:#1f2d44;
+  --shadow:0 12px 40px -8px rgba(0,0,0,.6);
+  --overlay:rgba(4,6,9,.72);
+}
+html[data-theme="light"]{
+  --canvas:#fbfbfc; --surface:#ffffff; --raised:#f5f6f8; --raised-2:#eef0f3;
+  --line:#e6e8ec; --line-soft:#eef0f3;
+  --ink:#11151b; --ink-mid:#3f4855; --ink-soft:#69727f; --ink-faint:#9aa2ad;
+  --accent:#e8262d; --accent-soft:#fdeced; --accent-line:#f6cdcf;
+  --code-bg:#0c0f15; --code-head:#10141b; --code-ink:#dfe5ee;
+  --c-key:#7aa2ff; --c-str:#f0b86e; --c-com:#5d6b7e; --c-fn:#56d4a0;
+  --kbd-bg:#f0f1f4; --kbd-line:#dcdfe4;
+  --ok:#16855a; --ok-soft:#e7f6ee;
+  --warn:#9a6a00; --warn-soft:#fdf5e3; --warn-line:#f0dcab;
+  --info:#1f5fd6; --info-soft:#eaf1fd; --info-line:#caddfb;
+  --shadow:0 12px 40px -10px rgba(20,30,50,.18);
+  --overlay:rgba(18,22,30,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+html[data-theme]{color-scheme:dark}
+html[data-theme="light"]{color-scheme:light}
+body{
+  font-family:var(--font-body);background:var(--canvas);color:var(--ink);
+  line-height:1.65;font-size:15px;-webkit-font-smoothing:antialiased;
+  font-feature-settings:"cv05","ss01";
+}
+a{color:inherit;text-decoration:none}
+::selection{background:var(--accent);color:var(--accent-ink)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:5px}
+
+/* ============ TOP BAR ============ */
+.topbar{
+  position:sticky;top:0;z-index:60;height:60px;
+  background:color-mix(in srgb,var(--canvas) 82%,transparent);
+  backdrop-filter:saturate(160%) blur(14px);
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:18px;padding:0 22px;
+}
+.brand{display:flex;align-items:center;gap:11px;flex:none}
+.logo{
+  width:30px;height:30px;border-radius:8px;flex:none;position:relative;
+  background:linear-gradient(145deg,var(--accent),#c0121f);
+  display:grid;place-items:center;box-shadow:0 2px 8px -2px var(--accent-line);
+}
+.logo::before{content:"";width:11px;height:11px;border-radius:50%;border:2.5px solid #fff}
+.logo::after{content:"";position:absolute;width:4px;height:8px;background:#fff;border-radius:2px;transform:translateY(11px)}
+.brand .bt{font-family:var(--font-ui);font-weight:600;font-size:15px;letter-spacing:-.01em}
+.brand .bt span{color:var(--ink-soft);font-weight:450}
+.topbar .spacer{flex:1}
+
+.search-trigger{
+  display:flex;align-items:center;gap:10px;height:38px;padding:0 12px 0 13px;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  color:var(--ink-soft);font-size:13.5px;cursor:pointer;min-width:230px;transition:.16s;
+  font-family:var(--font-body);
+}
+.search-trigger:hover{border-color:var(--ink-faint);background:var(--raised)}
+.search-trigger svg{width:15px;height:15px;flex:none;opacity:.8}
+.search-trigger .st-label{flex:1;text-align:left}
+.kbd{
+  font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);
+  background:var(--kbd-bg);border:1px solid var(--kbd-line);border-radius:5px;
+  padding:2px 6px;line-height:1;
+}
+.icon-btn{
+  width:38px;height:38px;flex:none;display:grid;place-items:center;cursor:pointer;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  color:var(--ink-mid);transition:.16s;
+}
+.icon-btn:hover{border-color:var(--ink-faint);color:var(--ink);background:var(--raised)}
+.icon-btn svg{width:17px;height:17px}
+html[data-theme="dark"] .icon-btn .sun{display:block}
+html[data-theme="dark"] .icon-btn .moon{display:none}
+html[data-theme="light"] .icon-btn .sun{display:none}
+html[data-theme="light"] .icon-btn .moon{display:block}
+.dc-badge{
+  display:flex;align-items:center;gap:7px;height:38px;padding:0 13px;flex:none;
+  background:var(--ok-soft);border:1px solid color-mix(in srgb,var(--ok) 35%,transparent);
+  border-radius:var(--r);font-size:12.5px;font-weight:500;color:var(--ok);
+}
+.dc-badge b{color:var(--ink);font-weight:600}
+.menu-btn{display:none}
+
+/* ============ SHELL ============ */
+.shell{max-width:1180px;margin:0 auto;display:grid;
+  grid-template-columns:minmax(0,1fr) var(--toc-w);align-items:start;
+  padding-left:84px}
+
+/* left nav */
+.sidenav{
+  position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;
+  border-right:1px solid var(--line);padding:26px 16px 60px 22px;
+}
+.sidenav::-webkit-scrollbar{width:8px}
+.sidenav::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+.nav-group{margin-bottom:22px}
+.nav-group .gt{
+  font-family:var(--font-ui);font-size:11px;font-weight:600;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--ink-faint);padding:0 10px;margin-bottom:8px;
+}
+.nav-group a{
+  display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:8px;
+  font-size:14px;color:var(--ink-mid);font-weight:450;line-height:1.3;transition:.13s;
+}
+.nav-group a .ix{font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);width:16px;flex:none}
+.nav-group a:hover{background:var(--raised);color:var(--ink)}
+.nav-group a.active{background:var(--accent-soft);color:var(--accent);font-weight:500}
+.nav-group a.active .ix{color:var(--accent)}
+.nav-credit{margin-top:24px;padding:14px 10px 0;border-top:1px solid var(--line-soft);
+  font-size:12px;color:var(--ink-faint)}
+.nav-credit b{color:var(--ink-soft);font-weight:600}
+
+/* content */
+main{padding:0 0 120px;min-width:0;display:flex;justify-content:center}
+.prose{width:100%;max-width:var(--content);padding:44px 40px 0}
+
+/* right toc */
+.tocrail{position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto;padding:44px 22px 60px 4px}
+.tocrail .th{font-family:var(--font-ui);font-size:11px;font-weight:600;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--ink-faint);margin-bottom:12px;padding-left:13px}
+.tocrail a{display:block;padding:5px 13px;font-size:13px;color:var(--ink-soft);
+  border-left:2px solid transparent;line-height:1.4;transition:.13s}
+.tocrail a:hover{color:var(--ink)}
+.tocrail a.active{color:var(--accent);border-left-color:var(--accent)}
+.tocrail a.sub{padding-left:26px;font-size:12.5px}
+
+/* ============ PROSE ELEMENTS ============ */
+.eyebrow{font-family:var(--font-mono);font-size:12px;color:var(--accent);
+  letter-spacing:.05em;display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.eyebrow::before{content:"";width:22px;height:1px;background:var(--accent);opacity:.5}
+h1{font-family:var(--font-ui);font-size:40px;line-height:1.08;font-weight:700;
+  letter-spacing:-.03em;margin-bottom:16px}
+.lede{font-size:17.5px;color:var(--ink-mid);line-height:1.6;max-width:62ch;margin-bottom:26px}
+.lede code{font-family:var(--font-mono);font-size:.85em;background:var(--raised);
+  border:1px solid var(--line);padding:1px 6px;border-radius:6px;color:var(--ink)}
+
+.metabar{display:flex;flex-wrap:wrap;gap:8px;padding-bottom:30px;margin-bottom:8px;
+  border-bottom:1px solid var(--line)}
+.metabar .m{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ink-mid);
+  background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 11px;font-weight:450}
+.metabar .m b{color:var(--ink);font-weight:600}
+.metabar .m .d{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+
+section{padding-top:30px;scroll-margin-top:78px}
+h2{font-family:var(--font-ui);font-size:25px;font-weight:650;letter-spacing:-.02em;
+  margin-bottom:6px;display:flex;align-items:center;gap:12px}
+h2 .h2ix{font-family:var(--font-mono);font-size:14px;font-weight:500;color:var(--accent);
+  background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:7px;
+  padding:3px 9px;letter-spacing:0}
+.sec-sub{color:var(--ink-soft);font-size:14.5px;margin-bottom:18px;margin-top:2px}
+h3{font-family:var(--font-ui);font-size:16.5px;font-weight:600;letter-spacing:-.01em;
+  margin:30px 0 12px;display:flex;align-items:center;gap:9px;scroll-margin-top:78px}
+h3::before{content:"";width:5px;height:16px;border-radius:3px;background:var(--accent);opacity:.85}
+p{color:var(--ink-mid);margin-bottom:14px;max-width:64ch}
+p code,li code,td code,.ic{font-family:var(--font-mono);font-size:.84em;
+  background:var(--raised);border:1px solid var(--line);padding:1px 6px;border-radius:6px;
+  color:var(--ink);white-space:nowrap}
+/* multi-word code (paths, menu trails) may wrap at spaces so it never clips */
+td code{white-space:normal;overflow-wrap:break-word}
+a.inline{color:var(--accent);font-weight:500;border-bottom:1px solid transparent;transition:.13s}
+a.inline:hover{border-bottom-color:var(--accent)}
+
+/* steps / ticks */
+ol.steps{list-style:none;counter-reset:s;display:flex;flex-direction:column;gap:12px;margin:8px 0 4px}
+ol.steps li{counter-increment:s;position:relative;padding-left:40px;color:var(--ink-mid)}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:26px;height:26px;
+  border-radius:8px;background:var(--raised);border:1px solid var(--line);
+  color:var(--ink);font-family:var(--font-mono);font-size:12px;font-weight:500;
+  display:grid;place-items:center}
+ol.steps li b{color:var(--ink);font-weight:600}
+ul.ticks{list-style:none;display:flex;flex-direction:column;gap:10px;margin:8px 0}
+ul.ticks li{position:relative;padding-left:28px;color:var(--ink-mid)}
+ul.ticks li::before{content:"";position:absolute;left:3px;top:7px;width:9px;height:5px;
+  border-left:2px solid var(--ok);border-bottom:2px solid var(--ok);transform:rotate(-45deg)}
+
+/* code */
+.code{background:var(--code-bg);border:1px solid var(--line);border-radius:var(--r);
+  overflow:hidden;margin:16px 0}
+.code-head{display:flex;align-items:center;gap:9px;padding:9px 12px;
+  background:var(--code-head);border-bottom:1px solid var(--line)}
+.code-head .lang{font-family:var(--font-mono);font-size:11px;color:var(--c-com);
+  letter-spacing:.02em;text-transform:lowercase}
+.code-head .fname{font-family:var(--font-mono);font-size:11.5px;color:var(--ink-soft)}
+.code-head .copy{margin-left:auto;display:flex;align-items:center;gap:6px;
+  font-family:var(--font-ui);font-size:11.5px;color:var(--ink-soft);cursor:pointer;
+  background:transparent;border:1px solid var(--line);border-radius:7px;padding:4px 9px;transition:.13s}
+.code-head .copy:hover{color:var(--ink);border-color:var(--ink-faint);background:var(--raised)}
+.code-head .copy.done{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,transparent)}
+.code-head .copy svg{width:13px;height:13px}
+pre{padding:15px 16px;overflow-x:auto;font-family:var(--font-mono);font-size:12.8px;
+  line-height:1.7;color:var(--code-ink);tab-size:2}
+pre::-webkit-scrollbar{height:8px}
+pre::-webkit-scrollbar-thumb{background:#2a323f;border-radius:8px}
+pre .k{color:var(--c-key)} pre .s{color:var(--c-str)} pre .c{color:var(--c-com)} pre .f{color:var(--c-fn)}
+
+/* callouts */
+.note{display:flex;gap:12px;padding:14px 16px;border-radius:var(--r);margin:16px 0;
+  font-size:14px;line-height:1.55;border:1px solid}
+.note .ni{flex:none;width:20px;height:20px;border-radius:6px;display:grid;place-items:center;
+  font-family:var(--font-mono);font-weight:600;font-size:12px;margin-top:1px}
+.note b{font-weight:600}
+.note code{font-family:var(--font-mono);font-size:.85em;padding:1px 5px;border-radius:5px;
+  background:color-mix(in srgb,var(--canvas) 50%,transparent)}
+.note.info{background:var(--info-soft);border-color:var(--info-line);color:var(--ink-mid)}
+.note.info .ni{background:var(--info);color:#fff} .note.info b{color:var(--ink)}
+.note.warn{background:var(--warn-soft);border-color:var(--warn-line);color:var(--ink-mid)}
+.note.warn .ni{background:var(--warn);color:#241a06} .note.warn b{color:var(--ink)}
+
+/* tables */
+.tbl{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin:16px 0;background:var(--surface)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+thead th{background:var(--raised);text-align:left;font-family:var(--font-ui);font-weight:600;
+  font-size:12px;letter-spacing:.02em;text-transform:uppercase;color:var(--ink-soft);
+  padding:10px 14px;border-bottom:1px solid var(--line)}
+tbody td{padding:11px 14px;border-top:1px solid var(--line-soft);color:var(--ink-mid);vertical-align:top}
+tbody tr:first-child td{border-top:none}
+tbody td:first-child{color:var(--ink);font-weight:500}
+tbody td code{background:var(--raised-2)}
+
+/* critical cards */
+.crit{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:6px 0}
+.crit .c{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
+  padding:16px;position:relative;overflow:hidden}
+.crit .c::before{content:"";position:absolute;inset:0 auto 0 0;width:3px;background:var(--accent)}
+.crit .c .ct{font-family:var(--font-mono);font-size:10.5px;color:var(--accent);
+  letter-spacing:.06em;font-weight:500}
+.crit .c h4{font-family:var(--font-ui);font-size:14.5px;font-weight:600;margin:7px 0 6px;color:var(--ink)}
+.crit .c p{font-size:13px;color:var(--ink-soft);margin:0;line-height:1.5}
+.crit .c p code{background:var(--raised-2)}
+
+/* collapsible issue groups */
+.acc{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin:12px 0;background:var(--surface)}
+.acc summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:11px;
+  padding:14px 16px;font-family:var(--font-ui);font-weight:600;font-size:14.5px;color:var(--ink);
+  user-select:none;transition:background .13s}
+.acc summary::-webkit-details-marker{display:none}
+.acc summary:hover{background:var(--raised)}
+.acc summary .chev{margin-left:auto;width:16px;height:16px;color:var(--ink-soft);transition:transform .2s}
+.acc[open] summary .chev{transform:rotate(90deg)}
+.acc summary .cnt{font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);
+  background:var(--raised-2);border:1px solid var(--line);border-radius:20px;padding:2px 9px;font-weight:500}
+.acc summary .gi{width:18px;height:18px;color:var(--accent);flex:none}
+.acc .acc-body{padding:0 16px 4px;border-top:1px solid var(--line-soft)}
+.acc .acc-body .tbl{border:none;border-radius:0;margin:0}
+.acc .acc-body .tbl table{font-size:13.5px}
+.acc .acc-body thead{display:none}
+.acc .acc-body tbody td{padding:13px 16px 13px 0;vertical-align:top}
+.acc .acc-body tbody td:first-child{width:38%;min-width:200px;padding-right:20px}
+.acc .acc-body tbody td:last-child{padding-right:0}
+.issue-q{font-family:var(--font-mono);font-size:12px;color:var(--ink);line-height:1.5;
+  white-space:normal;overflow-wrap:anywhere}
+
+/* footer */
+.docfoot{border-top:1px solid var(--line);margin-top:40px;padding-top:26px;
+  display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:center}
+.docfoot .fl{display:flex;flex-wrap:wrap;gap:16px;font-size:13px}
+.docfoot .fl a{color:var(--ink-soft);font-weight:450;display:flex;align-items:center;gap:5px}
+.docfoot .fl a:hover{color:var(--accent)}
+.docfoot .fl a svg{width:12px;height:12px;opacity:.7}
+.docfoot .fm{font-size:12.5px;color:var(--ink-faint);font-family:var(--font-mono)}
+
+/* ============ TERMINAL (Aceternity-style typewriter) ============ */
+.terminal{margin:8px 0 4px;border-radius:var(--r-lg);overflow:hidden;
+  background:#0b0e14;border:1px solid var(--line);box-shadow:var(--shadow)}
+html[data-theme="light"] .terminal{border-color:#dfe2e8}
+.term-bar{display:flex;align-items:center;gap:8px;padding:11px 14px;
+  background:#10141c;border-bottom:1px solid #1d242f}
+.term-dots{display:flex;gap:7px}
+.term-dots i{width:11px;height:11px;border-radius:50%;display:block}
+.term-dots i:nth-child(1){background:#ff5f57}
+.term-dots i:nth-child(2){background:#febc2e}
+.term-dots i:nth-child(3){background:#28c840}
+.term-title{margin:0 auto;font-family:var(--font-mono);font-size:11.5px;color:#6b7a90;
+  transform:translateX(-22px)}
+.term-body{padding:16px 16px 18px;font-family:var(--font-mono);font-size:12.8px;
+  line-height:1.85;color:#e7ecf4;min-height:230px;max-height:360px;overflow-y:auto}
+.term-body::-webkit-scrollbar{width:8px}
+.term-body::-webkit-scrollbar-thumb{background:#222b38;border-radius:8px}
+.term-line{white-space:pre-wrap;word-break:break-word}
+.term-line .prompt{color:#3ecf8e}
+.term-line .tilde{color:#7aa2ff}
+.term-line .cmd{color:#e7ecf4}
+.term-line .bin{color:#7aa2ff}
+.term-line .flag{color:#f0b86e}
+.term-line .path{color:#56d4a0}
+.term-line .url{color:#9bb4d4;text-decoration:underline;text-decoration-color:#2f3b4d}
+.term-out{color:#8b97a8}
+.term-out .ok{color:#3ecf8e}
+.term-out .pkg{color:#f0b86e}
+.term-cursor{display:inline-block;width:8px;height:15px;background:#3ecf8e;
+  vertical-align:text-bottom;margin-left:2px;animation:tblink 1s steps(2) infinite}
+@keyframes tblink{0%,50%{opacity:1}50.01%,100%{opacity:0}}
+.term-replay{margin-left:auto;display:flex;align-items:center;gap:6px;
+  font-family:var(--font-ui);font-size:11px;color:#6b7a90;cursor:pointer;
+  background:transparent;border:1px solid #232c39;border-radius:7px;padding:3px 9px;
+  transform:translateX(0);transition:.13s}
+.term-replay:hover{color:#cfd8e3;border-color:#36414f}
+.term-replay svg{width:12px;height:12px}
+
+/* ============ FLOATING DOCK (Aceternity-style, vertical) ============ */
+.dock{
+  position:fixed;left:16px;top:50%;
+  transform:translateY(-50%);z-index:55;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  padding:12px 8px;border-radius:22px;
+  background:color-mix(in srgb,var(--surface) 78%,transparent);
+  border:1px solid var(--line);backdrop-filter:saturate(160%) blur(12px);
+  box-shadow:var(--shadow);
+}
+.dock-item{position:relative;display:grid;place-items:center;flex:none;
+  width:42px;height:42px;border-radius:13px;color:var(--ink-mid);
+  background:var(--raised);border:1px solid var(--line);cursor:pointer;
+  transition:background .15s,color .15s,border-color .15s}
+.dock-item svg{width:19px;height:19px;transition:width .12s,height .12s}
+.dock-item:hover{color:var(--accent);border-color:var(--accent-line);background:var(--accent-soft)}
+.dock-item.active{color:var(--accent);border-color:var(--accent-line);background:var(--accent-soft)}
+.dock-item .dtip{
+  position:absolute;left:calc(100% + 14px);top:50%;
+  transform:translateY(-50%) translateX(-6px) scale(.96);
+  white-space:nowrap;font-family:var(--font-ui);font-size:12.5px;font-weight:500;
+  color:var(--ink);background:var(--surface);border:1px solid var(--line);
+  padding:6px 11px;border-radius:9px;box-shadow:var(--shadow);
+  opacity:0;pointer-events:none;transition:opacity .16s,transform .16s}
+.dock-item .dtip::before{content:"";position:absolute;right:100%;top:50%;
+  transform:translateY(-50%);border:6px solid transparent;border-right-color:var(--line)}
+.dock-item .dtip::after{content:"";position:absolute;right:100%;top:50%;margin-right:-1px;
+  transform:translateY(-50%);border:5px solid transparent;border-right-color:var(--surface)}
+.dock-item:hover .dtip{opacity:1;transform:translateY(-50%) translateX(0) scale(1)}
+.dock-sep{width:22px;height:1px;background:var(--line);margin:2px 0}
+/* dock is the sole left nav now — visible at all widths except narrow mobile */
+@media(max-width:760px){.dock{display:none}}
+
+/* ============ DOCK RIGHT-SIDE OPTION ============ */
+body[data-dock="right"] .dock{left:auto;right:16px}
+body[data-dock="right"] .dock-item .dtip{left:auto;right:calc(100% + 14px);
+  transform:translateY(-50%) translateX(6px) scale(.96)}
+body[data-dock="right"] .dock-item:hover .dtip{transform:translateY(-50%) translateX(0) scale(1)}
+body[data-dock="right"] .dock-item .dtip::before{right:auto;left:100%;border-right-color:transparent;border-left-color:var(--line)}
+body[data-dock="right"] .dock-item .dtip::after{right:auto;left:100%;margin-right:0;margin-left:-1px;border-right-color:transparent;border-left-color:var(--surface)}
+body[data-dock="right"] .shell{padding-left:0;padding-right:84px}
+@media(max-width:760px){body[data-dock="right"] .shell{padding-right:0}}
+
+/* ============ SETTINGS PANEL ============ */
+.settings-overlay{position:fixed;inset:0;z-index:90;background:var(--overlay);
+  backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .2s}
+.settings-overlay.on{opacity:1;pointer-events:auto}
+.settings{position:fixed;top:0;right:0;z-index:91;height:100vh;width:340px;max-width:90vw;
+  background:var(--surface);border-left:1px solid var(--line);box-shadow:var(--shadow);
+  transform:translateX(102%);transition:transform .26s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column}
+.settings.on{transform:none}
+.settings-head{display:flex;align-items:center;gap:10px;padding:18px 20px;border-bottom:1px solid var(--line)}
+.settings-head h3{font-family:var(--font-ui);font-size:16px;font-weight:650;margin:0;padding:0}
+.settings-head h3::before{display:none}
+.settings-head .sx{margin-left:auto;width:30px;height:30px;display:grid;place-items:center;
+  border-radius:8px;cursor:pointer;color:var(--ink-soft);border:1px solid var(--line);background:var(--raised)}
+.settings-head .sx:hover{color:var(--ink);border-color:var(--ink-faint)}
+.settings-head .sx svg{width:15px;height:15px}
+.settings-body{padding:20px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:24px}
+.set-group .set-label{font-family:var(--font-ui);font-size:12px;font-weight:600;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:11px;
+  display:flex;align-items:center;justify-content:space-between}
+.set-group .set-label .val{font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);
+  text-transform:none;letter-spacing:0}
+.swatches{display:flex;gap:10px;flex-wrap:wrap}
+.swatch{width:34px;height:34px;border-radius:10px;cursor:pointer;position:relative;
+  border:2px solid transparent;transition:transform .12s}
+.swatch:hover{transform:scale(1.08)}
+.swatch.sel{border-color:var(--ink)}
+.swatch.sel::after{content:"";position:absolute;inset:0;margin:auto;width:11px;height:6px;
+  border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translateY(-1px);
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))}
+.segbar{display:flex;gap:6px;background:var(--raised);border:1px solid var(--line);
+  border-radius:10px;padding:4px}
+.segbar button{flex:1;font-family:var(--font-ui);font-size:13px;font-weight:500;
+  color:var(--ink-soft);background:transparent;border:none;border-radius:7px;
+  padding:7px 6px;cursor:pointer;transition:.13s}
+.segbar button:hover{color:var(--ink)}
+.segbar button.sel{background:var(--surface);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.toggle-row .tr-tx{font-size:13.5px;color:var(--ink-mid)}
+.toggle-row .tr-tx b{display:block;color:var(--ink);font-weight:600;font-size:14px;margin-bottom:1px}
+.toggle-row .tr-tx b::before{display:none}
+.switch{position:relative;width:42px;height:24px;flex:none;cursor:pointer}
+.switch input{opacity:0;width:0;height:0;position:absolute}
+.switch .track{position:absolute;inset:0;background:var(--raised-2);border:1px solid var(--line);
+  border-radius:20px;transition:.18s}
+.switch .knob{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;
+  background:var(--ink-soft);transition:.18s}
+.switch input:checked + .track{background:var(--accent-soft);border-color:var(--accent-line)}
+.switch input:checked + .track .knob{transform:translateX(18px);background:var(--accent)}
+.settings-foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;align-items:center;
+  justify-content:space-between;gap:10px}
+.settings-foot .reset{font-family:var(--font-ui);font-size:12.5px;color:var(--ink-soft);cursor:pointer;
+  background:transparent;border:1px solid var(--line);border-radius:8px;padding:7px 12px;transition:.13s}
+.settings-foot .reset:hover{color:var(--ink);border-color:var(--ink-faint)}
+.settings-foot .made{font-size:12px;color:var(--ink-faint)}
+.settings-foot .made b{color:var(--ink-soft)}
+@media(max-width:760px){.dockSettings,#dockSettings{display:grid}}
+
+/* font scale hook — zoom scales the whole content column reliably */
+.prose{zoom:var(--font-scale, 1)}
+
+/* ============ COMMAND PALETTE ============ */
+.cmdk-overlay{position:fixed;inset:0;z-index:100;background:var(--overlay);
+  backdrop-filter:blur(3px);display:none;align-items:flex-start;justify-content:center;padding-top:13vh}
+.cmdk-overlay.on{display:flex}
+.cmdk{width:min(620px,92vw);background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-lg);box-shadow:var(--shadow);overflow:hidden;
+  animation:pop .15s ease}
+@keyframes pop{from{transform:scale(.97) translateY(-6px);opacity:0}to{transform:none;opacity:1}}
+.cmdk-search{display:flex;align-items:center;gap:11px;padding:15px 18px;border-bottom:1px solid var(--line)}
+.cmdk-search svg{width:18px;height:18px;color:var(--ink-soft);flex:none}
+.cmdk-search input{flex:1;background:transparent;border:none;outline:none;color:var(--ink);
+  font-family:var(--font-body);font-size:15.5px}
+.cmdk-search input::placeholder{color:var(--ink-faint)}
+.cmdk-search .esc{font-family:var(--font-mono);font-size:11px;color:var(--ink-soft);
+  background:var(--kbd-bg);border:1px solid var(--kbd-line);border-radius:5px;padding:3px 7px}
+.cmdk-results{max-height:54vh;overflow-y:auto;padding:8px}
+.cmdk-results::-webkit-scrollbar{width:8px}
+.cmdk-results::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+.cmdk-cat{font-family:var(--font-ui);font-size:10.5px;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--ink-faint);padding:10px 12px 6px}
+.cmdk-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:9px;cursor:pointer}
+.cmdk-item.sel{background:var(--accent-soft)}
+.cmdk-item .ci-ic{width:26px;height:26px;border-radius:7px;background:var(--raised);
+  border:1px solid var(--line);display:grid;place-items:center;flex:none;color:var(--ink-soft)}
+.cmdk-item.sel .ci-ic{color:var(--accent);border-color:var(--accent-line)}
+.cmdk-item .ci-ic svg{width:14px;height:14px}
+.cmdk-item .ci-tx{flex:1;min-width:0}
+.cmdk-item .ci-t{font-size:14px;color:var(--ink);font-weight:500;white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.cmdk-item .ci-t mark{background:transparent;color:var(--accent);font-weight:700}
+.cmdk-item .ci-s{font-size:12px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmdk-item .ci-k{font-family:var(--font-mono);font-size:10.5px;color:var(--ink-faint);flex:none}
+.cmdk-empty{padding:34px 16px;text-align:center;color:var(--ink-soft);font-size:14px}
+.cmdk-foot{display:flex;gap:16px;padding:10px 16px;border-top:1px solid var(--line);
+  font-size:11.5px;color:var(--ink-faint)}
+.cmdk-foot span{display:flex;align-items:center;gap:6px}
+.cmdk-foot .kk{font-family:var(--font-mono);background:var(--kbd-bg);border:1px solid var(--kbd-line);
+  border-radius:4px;padding:1px 5px;font-size:10px;color:var(--ink-soft)}
+
+/* mobile */
+.scrim{display:none}
+@media(max-width:1180px){
+  .tocrail{display:none}
+  .shell{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:760px){
+  .shell{grid-template-columns:1fr;padding-left:0}
+  .menu-btn{display:grid}
+  .dc-badge{display:none}
+  .search-trigger{min-width:0;width:38px;height:38px;padding:0;gap:0;justify-content:center;flex:none}
+  .search-trigger .st-label,.search-trigger .kbd{display:none}
+  .search-trigger svg{width:17px;height:17px;opacity:1}
+  .prose{padding:32px 22px 0}
+  h1{font-size:31px}
+  .crit{grid-template-columns:1fr}
+  .acc .acc-body tbody td:first-child{width:auto;display:block;padding-bottom:4px}
+  .acc .acc-body tbody td{display:block;padding:8px 0}
+  .acc .acc-body tbody tr{display:block;padding:8px 0;border-top:1px solid var(--line-soft)}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body.reduce-motion *{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+body.reduce-motion .term-cursor{animation:none!important;opacity:1}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <button class="icon-btn menu-btn" id="menuBtn" aria-label="Open navigation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <a class="brand" href="#top">
+    <span class="logo" aria-hidden="true"></span>
+    <span class="bt">Zoho People <span>/ Biometric</span></span>
+  </a>
+  <div class="spacer"></div>
+  <button class="search-trigger" id="searchTrigger" aria-label="Search documentation">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+    <span class="st-label">Search docs &amp; errors…</span>
+    <span class="kbd">⌘K</span>
+  </button>
+  <button class="icon-btn" id="themeBtn" aria-label="Toggle theme">
+    <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>
+    <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  </button>
+  <div class="dc-badge"><span style="width:7px;height:7px;border-radius:50%;background:var(--ok)"></span>DC · <b>India (.in)</b></div>
+</header>
+
+<div class="scrim" id="scrim"></div>
+
+<!-- FLOATING DOCK (vertical, left edge) -->
+<nav class="dock" id="dock" aria-label="Quick navigation">
+  <a class="dock-item" href="#top" data-spy="top" aria-label="Top">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg>
+    <span class="dtip">Overview</span>
+  </a>
+  <span class="dock-sep"></span>
+  <a class="dock-item" href="#install" data-spy="install" aria-label="Install software">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+    <span class="dtip">Install software</span>
+  </a>
+  <a class="dock-item" href="#deploy" data-spy="deploy" aria-label="Deploy plugin">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7l8-4 8 4v10l-8 4-8-4V7z"/><path d="M4 7l8 4 8-4M12 11v10"/></svg>
+    <span class="dtip">Deploy plugin</span>
+  </a>
+  <a class="dock-item" href="#configure" data-spy="configure" aria-label="Configure UI">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.2A1.6 1.6 0 0 0 7 19.3a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 2.7 14H2.5a2 2 0 1 1 0-4h.2A1.6 1.6 0 0 0 4.7 7a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 10 2.7h.1A1.6 1.6 0 0 0 11 1.5V1.3a2 2 0 1 1 4 0v.2a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.6 1.6 0 0 0 21.3 9v.1a1.6 1.6 0 0 0 1.2 1H21a2 2 0 1 1 0 4z"/></svg>
+    <span class="dtip">Configure UI</span>
+  </a>
+  <a class="dock-item" href="#oauth" data-spy="oauth" aria-label="OAuth & query">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/><circle cx="12" cy="16" r="1.4"/></svg>
+    <span class="dtip">OAuth &amp; query</span>
+  </a>
+  <a class="dock-item" href="#verify" data-spy="verify" aria-label="Verify & test">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    <span class="dtip">Verify &amp; test</span>
+  </a>
+  <span class="dock-sep"></span>
+  <a class="dock-item" href="#critical" data-spy="critical" aria-label="Critical checks">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l9 4v6c0 5-3.6 8.5-9 10-5.4-1.5-9-5-9-10V6z"/><path d="M12 8v4M12 16h.01"/></svg>
+    <span class="dtip">Critical checks</span>
+  </a>
+  <a class="dock-item" href="#trouble" data-spy="trouble" aria-label="Common issues">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="6" width="8" height="14" rx="4"/><path d="M8 10H3m18 0h-5M8 14H4m16 0h-4M9 6L7 3m8 3l2-3"/></svg>
+    <span class="dtip">Common issues</span>
+  </a>
+  <span class="dock-sep"></span>
+  <button class="dock-item" id="dockSearch" aria-label="Search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+    <span class="dtip">Search · ⌘K</span>
+  </button>
+  <button class="dock-item" id="dockSettings" aria-label="Customize UI">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h10M18 6h2M4 12h2M10 12h10M4 18h8M16 18h4"/><circle cx="16" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="14" cy="18" r="2"/></svg>
+    <span class="dtip">Customize UI</span>
+  </button>
+</nav>
+
+<!-- SETTINGS PANEL -->
+<div class="settings-overlay" id="setOverlay"></div>
+<aside class="settings" id="settings" aria-label="Customize UI">
+  <div class="settings-head">
+    <h3>Customize UI</h3>
+    <button class="sx" id="setClose" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div class="settings-body">
+
+    <div class="set-group">
+      <div class="set-label">Accent color</div>
+      <div class="swatches" id="swatches">
+        <span class="swatch" data-accent="red"    style="background:#ff5a5f" title="Red"></span>
+        <span class="swatch" data-accent="blue"   style="background:#3b82f6" title="Blue"></span>
+        <span class="swatch" data-accent="violet" style="background:#8b5cf6" title="Violet"></span>
+        <span class="swatch" data-accent="green"  style="background:#10b981" title="Green"></span>
+        <span class="swatch" data-accent="amber"  style="background:#f59e0b" title="Amber"></span>
+        <span class="swatch" data-accent="pink"   style="background:#ec4899" title="Pink"></span>
+      </div>
+    </div>
+
+    <div class="set-group">
+      <div class="set-label">Font size <span class="val" id="fsVal">100%</span></div>
+      <div class="segbar" id="fontseg">
+        <button data-fs="0.9">Small</button>
+        <button data-fs="1" class="sel">Default</button>
+        <button data-fs="1.12">Large</button>
+      </div>
+    </div>
+
+    <div class="set-group">
+      <div class="set-label">Dock position</div>
+      <div class="segbar" id="dockseg">
+        <button data-dock="left" class="sel">Left</button>
+        <button data-dock="right">Right</button>
+      </div>
+    </div>
+
+    <div class="set-group">
+      <div class="toggle-row">
+        <span class="tr-tx"><b>Reduce motion</b>Pause the terminal typing &amp; transitions</span>
+        <label class="switch">
+          <input type="checkbox" id="motionToggle">
+          <span class="track"><span class="knob"></span></span>
+        </label>
+      </div>
+    </div>
+
+  </div>
+  <div class="settings-foot">
+    <button class="reset" id="setReset">Reset to defaults</button>
+    <span class="made">Made by <b>Rohit</b></span>
+  </div>
+</aside>
+
+<div class="shell" id="top">
+
+  <main>
+    <article class="prose">
+
+      <div class="eyebrow">Developer Documentation · Plugin Method</div>
+      <h1>Biometric attendance, synced into Zoho People</h1>
+      <p class="lede">Deploy the <code>ZAttendance.war</code> plugin on the client&rsquo;s server. It runs on Apache Tomcat&nbsp;9, reads punches from the biometric database, and pushes them into Zoho People over OAuth2 &mdash; no manual check-ins.</p>
+      <div class="metabar">
+        <span class="m"><span class="d"></span><b>Tomcat 9</b> + Java JRE</span>
+        <span class="m"><span class="d"></span>Port <b>8584</b></span>
+        <span class="m"><span class="d"></span>MS SQL · MySQL · Access</span>
+        <span class="m"><span class="d"></span>v<b>1.0</b></span>
+      </div>
+
+      <div class="terminal" id="terminal">
+        <div class="term-bar">
+          <span class="term-dots"><i></i><i></i><i></i></span>
+          <span class="term-title">client-server — bash</span>
+          <button class="term-replay" id="termReplay" type="button" aria-label="Replay">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+            Replay
+          </button>
+        </div>
+        <div class="term-body" id="termBody"></div>
+      </div>
+
+      <section id="prereq">
+        <h2><span class="h2ix">00</span>Prerequisites</h2>
+        <p class="sec-sub">Confirm before you start &mdash; setup runs on the client&rsquo;s server.</p>
+        <div class="note info">
+          <div class="ni">i</div>
+          <div><b>Do this with the client.</b> The integration needs access to the client&rsquo;s server, the biometric database credentials, and an admin Zoho&nbsp;People account. Keep the client&rsquo;s IT team or biometric vendor available throughout.</div>
+        </div>
+        <div class="tbl"><table>
+          <thead><tr><th>Requirement</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td>Server access</td><td>Administrator access to the client&rsquo;s Windows server where biometric data is stored</td></tr>
+            <tr><td>Admin Zoho account</td><td>A Zoho People account whose Role is marked <code>admin</code> &mdash; OAuth tokens must be generated from it</td></tr>
+            <tr><td>Database</td><td>Microsoft SQL Server, MySQL, or Microsoft Access, with the attendance table reachable</td></tr>
+            <tr><td>Data center</td><td>India DC &mdash; every Zoho endpoint uses the <code>.in</code> domain</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <section id="install">
+        <h2><span class="h2ix">01</span>Install the software</h2>
+        <p class="sec-sub">Java first, then Tomcat &mdash; the order matters.</p>
+        <p>Two components go onto the client&rsquo;s server, <b>in this exact order</b>. Tomcat needs Java already present to register itself correctly.</p>
+
+        <h3 id="install-java">Java JRE (latest version)</h3>
+        <ol class="steps">
+          <li>Download the latest build for the server&rsquo;s OS architecture from <a class="inline" href="https://www.openlogic.com/openjdk-downloads" target="_blank" rel="noopener">OpenLogic OpenJDK</a>.</li>
+          <li>Run the installer with default options.</li>
+          <li>Note the install path under <span class="ic">C:\Program Files\OpenLogic\jdk-&lt;version&gt;</span> &mdash; you&rsquo;ll point Tomcat at it next.</li>
+        </ol>
+
+        <h3 id="install-tomcat">Apache Tomcat 9 (Windows Service Installer)</h3>
+        <p>Download the <b>Windows Service Installer</b> build from <a class="inline" href="https://tomcat.apache.org/download-90.cgi" target="_blank" rel="noopener">tomcat.apache.org</a>, then set these values during install:</p>
+        <div class="tbl"><table>
+          <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Service name</td><td><code>Tomcat9ZohoPeople</code></td></tr>
+            <tr><td>Shutdown port</td><td><code>8989</code></td></tr>
+            <tr><td>Connector port</td><td><code>8584</code> &mdash; confirm it isn&rsquo;t already in use</td></tr>
+            <tr><td>Java path</td><td><code>C:\Program Files\OpenLogic\jdk-&lt;version&gt;</code></td></tr>
+          </tbody>
+        </table></div>
+        <p>Set the service to start automatically:</p>
+        <ol class="steps">
+          <li>Open <b>Services</b> &rarr; find <span class="ic">Apache Tomcat 9.0 Tomcat9ZohoPeople</span>.</li>
+          <li>Right-click &rarr; <b>Properties</b> &rarr; set <b>Startup type</b> to <span class="ic">Automatic</span> &rarr; Apply.</li>
+        </ol>
+      </section>
+
+      <section id="deploy">
+        <h2><span class="h2ix">02</span>Deploy the ZAttendance plugin</h2>
+        <p class="sec-sub">Drop the WAR in the right folder &mdash; Tomcat does the rest.</p>
+        <p>Download the plugin WAR:</p>
+        <div class="code">
+          <div class="code-head"><span class="lang">url</span><span class="fname">ZAttendance.war</span><button class="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy</button></div>
+<pre>https://www.zoho.com/people/downloads/ZAttendance.war</pre>
+        </div>
+
+        <h3 id="deploy-folder">Place it in the correct folder</h3>
+        <p>The WAR must go into the Tomcat <span class="ic">webapps</span> directory &mdash; exactly here:</p>
+        <div class="code">
+          <div class="code-head"><span class="lang">path</span><button class="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy</button></div>
+<pre>C:\ &gt; Program Files &gt; Apache Software Foundation &gt; Tomcat9 &gt; webapps</pre>
+        </div>
+        <ol class="steps">
+          <li>Copy &amp; paste <span class="ic">ZAttendance.war</span> into the <span class="ic">webapps</span> folder.</li>
+          <li><b>Refresh</b> the folder. Tomcat auto-extracts the WAR and creates a <span class="ic">ZAttendance</span> folder beside it &mdash; no installer to run.</li>
+        </ol>
+        <div class="note warn">
+          <div class="ni">!</div>
+          <div><b>Folder didn&rsquo;t extract?</b> Make sure the <code>Apache Tomcat 9.0 Tomcat9ZohoPeople</code> service is running. If the <code>ZAttendance</code> folder still doesn&rsquo;t appear after a refresh, restart the service from Services.</div>
+        </div>
+
+        <h3 id="deploy-load">Load the plugin page</h3>
+        <p>Open this URL in a browser on the server to confirm deployment:</p>
+        <div class="code">
+          <div class="code-head"><span class="lang">verify</span><button class="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy</button></div>
+<pre>http://localhost:8584/ZAttendance</pre>
+        </div>
+        <p>If the page loads, deployment succeeded. The port <span class="ic">8584</span> must match the Tomcat connector port from Step&nbsp;01.</p>
+        <div class="note warn">
+          <div class="ni">!</div>
+          <div><b>Plugin page not loading on 8584?</b> The port may be in use by another service. Change it in the config file inside the <code>ZAttendance</code> folder (under <code>Tomcat9 &gt; webapps &gt; ZAttendance</code>), update the Tomcat connector port to match in <code>Tomcat9 &gt; conf &gt; server.xml</code>, restart the <code>Apache Tomcat 9.0 Tomcat9ZohoPeople</code> service, then reload at <code>http://localhost:&lt;new-port&gt;/ZAttendance</code>.</div>
+        </div>
+      </section>
+
+      <section id="configure">
+        <h2><span class="h2ix">03</span>Configure the plugin</h2>
+        <p class="sec-sub">Click <b>Configure</b>, pick the database, fill the fields.</p>
+        <p>On the plugin page, click <b>Configure</b> in the top-right corner to open the configuration page, then select the database type.</p>
+        <div class="note info">
+          <div class="ni">i</div>
+          <div><b>Use the example URL from the field itself.</b> Each connection-URL field shows an example in its label / placeholder. Copy <i>that</i> URL into the field and only change the database name and port &mdash; don&rsquo;t type the URL from memory.</div>
+        </div>
+
+        <h3 id="configure-db">Database connection</h3>
+        <div class="tbl"><table>
+          <thead><tr><th>Database</th><th>Default port</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>MySQL</td><td><code>3306</code></td><td>Default username <code>root</code></td></tr>
+            <tr><td>MS SQL Server</td><td><code>1433</code></td><td>Enable TCP/IP on 1433 first (below)</td></tr>
+            <tr><td>MS Access</td><td>&mdash;</td><td>Give the DB path; switch <code>/</code> to <code>\</code>. Username <code>admin</code></td></tr>
+          </tbody>
+        </table></div>
+        <ol class="steps">
+          <li>Paste the <b>example connection URL</b> shown in the field.</li>
+          <li>Update the <b>database name</b> in the URL.</li>
+          <li>Set the <b>port</b> to match your database instance.</li>
+          <li>Enter the database <b>username and password</b>.</li>
+          <li>Set <b>Delay Time</b> and <b>Sleep Time</b> to <span class="ic">5 minutes</span> (minimum recommended).</li>
+        </ol>
+
+        <h3 id="configure-mssql">MS SQL &mdash; enable TCP/IP on 1433</h3>
+        <div class="code">
+          <div class="code-head"><span class="lang">config</span><button class="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy</button></div>
+<pre>Computer Management &gt; SQL Server Network Configuration
+  &gt; Protocols for SQLEXPRESS &gt; TCP/IP
+  &gt; IP Addresses &gt; TCP Port: 1433 &gt; Apply &gt; OK</pre>
+        </div>
+      </section>
+
+      <section id="oauth">
+        <h2><span class="h2ix">04</span>OAuth tokens &amp; SQL query</h2>
+        <p class="sec-sub">Generate credentials on the India console, then set the pull query.</p>
+        <div class="note warn">
+          <div class="ni">!</div>
+          <div><b>Data center is India.</b> Use <code>api-console.zoho.in</code> (not <code>.com</code>) and select the <b>India DC</b> when generating the refresh token. Tokens must come from an account whose Role is <code>admin</code>.</div>
+        </div>
+        <ol class="steps">
+          <li>Go to <a class="inline" href="https://api-console.zoho.in" target="_blank" rel="noopener">api-console.zoho.in</a> and create a <b>Self Client</b> application.</li>
+          <li>Copy the <b>Client ID</b> and <b>Client Secret</b> into the matching fields on the Configure page.</li>
+          <li>Under <b>Generate Code</b>, generate a code with the values below.</li>
+          <li>Paste the <b>Code</b> into the plugin, select <b>India (.in)</b>, click <b>Generate</b>, then paste the resulting <b>Refresh Token</b> into its field.</li>
+        </ol>
+        <div class="tbl"><table>
+          <thead><tr><th>Field</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Scope</td><td><code>ZohoPeople.attendance.all</code></td></tr>
+            <tr><td>Duration</td><td><code>10 minutes</code></td></tr>
+            <tr><td>Description</td><td><code>BI</code></td></tr>
+          </tbody>
+        </table></div>
+
+        <h3 id="oauth-fields">Required fields &mdash; what each column must return</h3>
+        <p>Every query must return these aliases. The plugin reads them by name, so the aliases matter even when the source columns are named differently.</p>
+        <div class="tbl"><table>
+          <thead><tr><th>Field</th><th>Meaning</th><th>Format</th></tr></thead>
+          <tbody>
+            <tr><td><code>employeeId</code></td><td>Must match the employee ID in Zoho People (or be mapped under Biometric ID Mapping)</td><td>Text / number</td></tr>
+            <tr><td><code>isCheckin</code></td><td><b><code>1</code> = check-in (IN punch)</b> · <b><code>0</code> = check-out (OUT punch)</b></td><td>1 or 0</td></tr>
+            <tr><td><code>eventTime</code></td><td>The in-punch / out-punch timestamp</td><td>date-time</td></tr>
+            <tr><td><code>downloadDate</code></td><td>When the record was pushed to the DB (optional &mdash; prevents data loss if present)</td><td>date-time</td></tr>
+          </tbody>
+        </table></div>
+        <div class="note info">
+          <div class="ni">i</div>
+          <div><b>isCheckin direction.</b> Zoho reads <code>1</code> as a check-in and <code>0</code> as a check-out. If the source table has no direction column, push each punch as both &mdash; see the eTimeTrackLite query below.</div>
+        </div>
+
+        <h3 id="oauth-standard">SQL query &mdash; standard (all columns present)</h3>
+        <div class="code">
+          <div class="code-head"><span class="lang">sql</span><span class="fname">static table</span><button class="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy</button></div>
+<pre><span class="k">select</span> employeeId, isCheckin, eventTime, [downloadDate]
+<span class="k">from</span> [ZAttendance].[dbo].[Attendance]
+<span class="k">where</span> downloadDate &gt;= <span class="s">$1</span> <span class="k">and</span> downloadDate &lt; <span class="s">$2</span></pre>
+        </div>
+
+        <h3 id="oauth-nodl">When <code>downloadDate</code> is missing</h3>
+        <p>Set <b>Delay Time</b> to <span class="ic">1&ndash;2 hours</span> and window on <span class="ic">eventTime</span> instead:</p>
+        <div class="code">
+          <div class="code-head"><span class="lang">sql</span><span class="fname">no downloadDate</span><button class="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy</button></div>
+<pre><span class="k">select</span> employeeId, isCheckin, eventTime
+<span class="k">from</span> [ZAttendance].[dbo].[Attendance]
+<span class="k">where</span> eventTime &gt;= <span class="s">$1</span> <span class="k">and</span> eventTime &lt; <span class="s">$2</span></pre>
+        </div>
+
+        <h3 id="oauth-essl">Production query &mdash; eTimeTrackLite (essl)</h3>
+        <p>This is the working query for an <b>eTimeTrackLite</b> database. The <span class="ic">AttendanceLogsV1</span> table has no IN/OUT direction column, so each punch is pushed as <b>both</b> IN (<code>'1'</code>) and OUT (<code>'0'</code>) via a <span class="ic">union</span>. Paste this into the config editor and adjust the table / column names to match the client&rsquo;s schema.</p>
+        <div class="code">
+          <div class="code-head"><span class="lang">sql</span><span class="fname">eTimeTrackLite · push each punch as IN &amp; OUT</span><button class="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy</button></div>
+<pre><span class="k">select</span> EmployeeCode <span class="k">as</span> employeeId, <span class="s">'1'</span> <span class="k">as</span> isCheckin, LogDateTime <span class="k">as</span> eventTime
+<span class="k">from</span> [etimetracklite1].[dbo].[AttendanceLogsV1]
+<span class="k">where</span> LogDateTime &gt;= <span class="s">$1</span>
+<span class="k">and</span> LogDateTime &lt; <span class="s">$2</span>
+
+<span class="k">union</span>
+
+<span class="k">select</span> EmployeeCode <span class="k">as</span> employeeId, <span class="s">'0'</span> <span class="k">as</span> isCheckin, LogDateTime <span class="k">as</span> eventTime
+<span class="k">from</span> [etimetracklite1].[dbo].[AttendanceLogsV1]
+<span class="k">where</span> LogDateTime &gt;= <span class="s">$1</span>
+<span class="k">and</span> LogDateTime &lt; <span class="s">$2</span></pre>
+        </div>
+        <div class="note info">
+          <div class="ni">i</div>
+          <div><b>Column mapping.</b> <code>EmployeeCode</code> &rarr; <code>employeeId</code>, <code>LogDateTime</code> &rarr; <code>eventTime</code>. Zoho needs the aliases <code>employeeId</code>, <code>isCheckin</code>, and <code>eventTime</code> &mdash; keep these alias names even if the source columns differ.</div>
+        </div>
+
+        <h3 id="oauth-tz">Time zone</h3>
+        <p>Set the plugin time zone to the time zone of the <b>data in the database</b> (e.g. <span class="ic">GMT+5:30</span>). It must match the admin account that generated the tokens and the biometric users&rsquo; time zone.</p>
+      </section>
+
+      <section id="verify">
+        <h2><span class="h2ix">05</span>Verify &amp; test</h2>
+        <p class="sec-sub">One employee first, then automate.</p>
+        <p>Before automating, test with a single employee and confirm the punch lands in Zoho People. Temporarily filter the query:</p>
+        <div class="code">
+          <div class="code-head"><span class="lang">sql</span><span class="fname">single-employee test</span><button class="copy" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy</button></div>
+<pre><span class="k">select</span> employeeId, isCheckin, eventTime, [DownloadDate]
+<span class="k">from</span> [ZAttendance].[dbo].[Attendance]
+<span class="k">where</span> eventTime &gt;= <span class="s">$1</span> <span class="k">and</span> eventTime &lt; <span class="s">$2</span> <span class="k">and</span> employeeId = <span class="s">'1001'</span></pre>
+        </div>
+        <ol class="steps">
+          <li>In the <b>Manual Sync</b> tab, click <b>Get Record Count</b> to confirm rows are found.</li>
+          <li>Click <b>Fetch</b> then <b>Upload</b> to pull and push the data into Zoho People.</li>
+          <li>Confirm the punch under <span class="ic">Attendance &gt; My Data / Team Data</span>.</li>
+          <li>Restore the production query and click <b>Resume Sync</b> to automate periodic pushes.</li>
+        </ol>
+
+        <h3 id="verify-mapping">Biometric ID mapping</h3>
+        <ul class="ticks">
+          <li>If a device&rsquo;s biometric ID differs from the Zoho employee ID, map it under <span class="ic">Operations &gt; Attendance &gt; Biometric ID Mapping</span>.</li>
+          <li>If employees have multiple shifts, every shift must be mapped.</li>
+        </ul>
+
+        <h3 id="verify-backup">Back up the configuration</h3>
+        <ul class="ticks">
+          <li>Create a <span class="ic">Backup</span> folder inside <span class="ic">Apache Software Foundation</span>.</li>
+          <li>Copy the <span class="ic">.config</span> file (type <span class="ic">.xml</span>) from the Tomcat folder into it.</li>
+        </ul>
+        <div class="note warn">
+          <div class="ni">!</div>
+          <div><b>Server stability.</b> The integration depends entirely on the server holding the biometric data. An improper shutdown or crash can corrupt the configuration page and force a reconfigure &mdash; keep the <code>.config</code> backup safe.</div>
+        </div>
+      </section>
+
+      <section id="critical">
+        <h2><span class="h2ix">!</span>Three critical checks</h2>
+        <p class="sec-sub">The most common causes of a failed setup.</p>
+        <div class="crit">
+          <div class="c"><div class="ct">CHECK 01</div><h4>ZAttendance port</h4><p>The plugin port <code>8584</code> must match the Tomcat connector port and be free on the server.</p></div>
+          <div class="c"><div class="ct">CHECK 02</div><h4>.com → .in (3 places)</h4><p>In the config properties file, change the domain to <code>.in</code> from <code>.com</code> in <b>all three</b> places it appears.</p></div>
+          <div class="c"><div class="ct">CHECK 03</div><h4>Logs &amp; database</h4><p>Check the plugin / Tomcat logs, and cross-check that the database name and table in the query exist and return rows.</p></div>
+        </div>
+        <div class="note warn">
+          <div class="ni">!</div>
+          <div><b>Config properties file &mdash; change domain in 3 places.</b> Open the config properties file inside the Tomcat <code>ZAttendance</code> folder and replace <code>.com</code> with <code>.in</code> in all three occurrences. Missing even one sends token / API calls to the wrong data center.</div>
+        </div>
+      </section>
+
+      <section id="trouble">
+        <h2><span class="h2ix">06</span>Common issues &amp; fixes</h2>
+        <p class="sec-sub">Match a Catalina log line or symptom to its fix.</p>
+        <p>The plugin&rsquo;s errors surface in the Tomcat <span class="ic">Catalina</span> logs. Expand a group and find the message you&rsquo;re seeing &mdash; or hit <span class="kbd" style="font-size:11px">⌘K</span> and paste the error.</p>
+
+        <details class="acc" open>
+          <summary>
+            <svg class="gi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+            Plugin page &amp; Tomcat
+            <span class="cnt">6</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+          </summary>
+          <div class="acc-body"><div class="tbl"><table><tbody>
+            <tr><td><div class="issue-q">Plugin page won&rsquo;t load at <code>:8584/ZAttendance</code></div></td><td>Tomcat service running? Port <code>8584</code> free and matching the connector port? WAR extracted in <code>webapps</code>?</td></tr>
+            <tr><td><div class="issue-q">Config page empty; both Resume Sync &amp; Stop Sync show; Configure won&rsquo;t open</div></td><td>Plugin page corruption (often after an improper server shutdown). The configuration must be reconfigured &mdash; restore from your <code>.config</code> backup if you have one.</td></tr>
+            <tr><td><div class="issue-q">Address already in use / JVM_Bind Exception</div></td><td>Port <code>8584</code> (or shutdown port <code>8989</code>) is taken by another service. Free the port or change the connector port, then restart Tomcat.</td></tr>
+            <tr><td><div class="issue-q">Tomcat page not loading</div></td><td>Tomcat version is greater than 9/10. Use <b>Tomcat 9</b> &mdash; higher versions are not supported for this plugin.</td></tr>
+            <tr><td><div class="issue-q">Resume Sync / Configure not working; sync stops; page won&rsquo;t load</div></td><td>Partial page corruption or a stopped Tomcat service. Restart the <code>Apache Tomcat 9.0 Tomcat9ZohoPeople</code> service; reconfigure if the page is corrupted.</td></tr>
+            <tr><td><div class="issue-q">GC overhead limit exceeded</div></td><td>Tomcat ran out of heap, usually from too wide a sync window. Reduce the date range / increase Tomcat memory, then re-sync in smaller windows.</td></tr>
+          </tbody></table></div></div>
+        </details>
+
+        <details class="acc">
+          <summary>
+            <svg class="gi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.5 8-8 10-4.5-2-8-5-8-10V6z"/></svg>
+            Authentication &amp; tokens
+            <span class="cnt">3</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+          </summary>
+          <div class="acc-body"><div class="tbl"><table><tbody>
+            <tr><td><div class="issue-q">Tokens invalid / Access token not found</div></td><td>Wrong DC or expired/incorrect credentials. Regenerate on <code>api-console.zoho.in</code>, select <b>India DC</b>, confirm the domain is <code>.in</code> in all 3 places, and that tokens came from an <b>admin-role</b> account.</td></tr>
+            <tr><td><div class="issue-q">JSONObject: Access Token Not Found after Fetch &amp; Upload</div></td><td>Refresh token missing or invalid in the config. Re-paste a freshly generated refresh token and retry.</td></tr>
+            <tr><td><div class="issue-q">Exception @getLastUpdatedTime{0}</div></td><td>The plugin can&rsquo;t read the last-sync marker, typically a token/DC mismatch. Re-verify the tokens and DC as above.</td></tr>
+          </tbody></table></div></div>
+        </details>
+
+        <details class="acc">
+          <summary>
+            <svg class="gi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>
+            Database &amp; connectivity
+            <span class="cnt">5</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+          </summary>
+          <div class="acc-body"><div class="tbl"><table><tbody>
+            <tr><td><div class="issue-q">No suitable driver found for …</div></td><td>Wrong database type selected, or the JDBC connection URL is malformed. Re-select the DB type and paste the <b>example URL from the field</b>, editing only the DB name and port.</td></tr>
+            <tr><td><div class="issue-q">Cannot open database "name" requested by the login. The login failed</div></td><td>Bad DB name or credentials. Verify the database name in the query / URL and the username &amp; password.</td></tr>
+            <tr><td><div class="issue-q">Connection Refused: Connect / Java socket error</div></td><td>DB not reachable on the configured host/port. For MS SQL, enable TCP/IP on port <code>1433</code>; confirm the DB service is running.</td></tr>
+            <tr><td><div class="issue-q">Communications Link Failure</div></td><td>Network/port issue between plugin and DB. Check the host, port (MySQL <code>3306</code> / MS SQL <code>1433</code>), and that the DB accepts remote connections.</td></tr>
+            <tr><td><div class="issue-q">Communications Link Failure + SSLHandshakeException: No Appropriate Protocol</div></td><td>TLS mismatch with the DB. Adjust the connection URL&rsquo;s SSL parameters (or enable the required protocol) per the DB&rsquo;s configuration.</td></tr>
+          </tbody></table></div></div>
+        </details>
+
+        <details class="acc">
+          <summary>
+            <svg class="gi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+            Data &amp; sync
+            <span class="cnt">6</span>
+            <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+          </summary>
+          <div class="acc-body"><div class="tbl"><table><tbody>
+            <tr><td><div class="issue-q">All record count is 0</div></td><td>Query window returns nothing. Check the table/column names and that data exists in the <code>$1</code>&ndash;<code>$2</code> range.</td></tr>
+            <tr><td><div class="issue-q">Data is in the table but record count is 0 — no exceptions in Catalina</div></td><td>Usually a time-zone or window mismatch between the plugin and the data. Align the plugin time zone to the <b>data&rsquo;s</b> time zone and re-check the date window.</td></tr>
+            <tr><td><div class="issue-q">Date range provided is more than 31 days</div></td><td>The sync window exceeds the 31-day limit. Narrow the manual window to 31 days or less.</td></tr>
+            <tr><td><div class="issue-q">Attendance skipped / not syncing for some employee IDs</div></td><td>Those IDs aren&rsquo;t mapped, or the biometric ID differs from the Zoho ID. Map them under <code>Operations &gt; Attendance &gt; Biometric ID Mapping</code>; map all shifts.</td></tr>
+            <tr><td><div class="issue-q">No IN/OUT direction column in the table</div></td><td>Push each punch as both IN &amp; OUT &mdash; use the <a class="inline" href="#oauth-essl">eTimeTrackLite UNION query</a>.</td></tr>
+            <tr><td><div class="issue-q">downloadDate column not available</div></td><td>Set <b>Delay Time</b> to 1&ndash;2 hours and window on <code>eventTime</code> instead. Without <code>downloadDate</code>, full-data delivery isn&rsquo;t guaranteed &mdash; possible data loss.</td></tr>
+          </tbody></table></div></div>
+        </details>
+
+        <div class="note info">
+          <div class="ni">i</div>
+          <div><b>Where to look.</b> Catalina logs live under <code>Tomcat9 &gt; logs &gt; catalina.&lt;date&gt;.log</code>. Open the latest file and search for the message text above.</div>
+        </div>
+      </section>
+
+      <div class="docfoot">
+        <div class="fl">
+          <a href="https://www.zoho.com/people/downloads/ZAttendance.war" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>WAR file</a>
+          <a href="https://tomcat.apache.org/download-90.cgi" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg>Tomcat 9</a>
+          <a href="https://www.openlogic.com/openjdk-downloads" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg>Java</a>
+          <a href="https://api-console.zoho.in" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17L17 7M7 7h10v10"/></svg>OAuth console</a>
+        </div>
+        <div class="fm">Made by <b style="color:var(--ink)">Rohit</b> · Plugin Method · v1.0</div>
+      </div>
+
+    </article>
+  </main>
+
+  <aside class="tocrail" id="tocrail">
+    <div class="th">On this page</div>
+    <a href="#prereq">Prerequisites</a>
+    <a href="#install">Install software</a>
+    <a href="#install-java" class="sub">Java JRE</a>
+    <a href="#install-tomcat" class="sub">Tomcat 9</a>
+    <a href="#deploy">Deploy plugin</a>
+    <a href="#configure">Configure UI</a>
+    <a href="#oauth">OAuth &amp; query</a>
+    <a href="#oauth-fields" class="sub">Required fields</a>
+    <a href="#oauth-essl" class="sub">eTimeTrackLite query</a>
+    <a href="#verify">Verify &amp; test</a>
+    <a href="#critical">Critical checks</a>
+    <a href="#trouble">Common issues</a>
+  </aside>
+
+</div>
+
+<div class="cmdk-overlay" id="cmdk" role="dialog" aria-modal="true" aria-label="Search">
+  <div class="cmdk">
+    <div class="cmdk-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+      <input id="cmdkInput" type="text" placeholder="Search guide, fields, or paste an error message…" autocomplete="off" spellcheck="false">
+      <span class="esc">ESC</span>
+    </div>
+    <div class="cmdk-results" id="cmdkResults"></div>
+    <div class="cmdk-foot">
+      <span><span class="kk">↑↓</span> navigate</span>
+      <span><span class="kk">↵</span> open</span>
+      <span><span class="kk">esc</span> close</span>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var saved=null; try{ saved=localStorage.getItem('zp-theme'); }catch(e){}
+  if(saved){ document.documentElement.setAttribute('data-theme',saved); }
+  document.getElementById('themeBtn').addEventListener('click',function(){
+    var cur=document.documentElement.getAttribute('data-theme');
+    var next=cur==='dark'?'light':'dark';
+    document.documentElement.setAttribute('data-theme',next);
+    try{ localStorage.setItem('zp-theme',next); }catch(e){}
+  });
+})();
+
+(function(){
+  var b=document.body,mb=document.getElementById('menuBtn');
+  // menu button now opens search (no sidebar to toggle)
+  if(mb) mb.addEventListener('click',function(){ var t=document.getElementById('searchTrigger'); if(t) t.click(); });
+})();
+
+/* ---------- UI CUSTOMIZER ---------- */
+(function(){
+  var ACCENTS={
+    red:   {dark:{a:'#ff6b70',soft:'#2a1417',line:'#42201f'}, light:{a:'#e8262d',soft:'#fdeced',line:'#f6cdcf'}},
+    blue:  {dark:{a:'#5b9bff',soft:'#11213a',line:'#1d3354'}, light:{a:'#2563eb',soft:'#eaf1fd',line:'#c7dbfb'}},
+    violet:{dark:{a:'#a78bfa',soft:'#1e1733',line:'#2f2550'}, light:{a:'#7c3aed',soft:'#f1ebfe',line:'#ddccfb'}},
+    green: {dark:{a:'#34d399',soft:'#0f2a1e',line:'#1a3d2c'}, light:{a:'#059669',soft:'#e7f7ef',line:'#bce8d2'}},
+    amber: {dark:{a:'#fbbf24',soft:'#2a2110',line:'#42351a'}, light:{a:'#d97706',soft:'#fdf3e3',line:'#f4dcab'}},
+    pink:  {dark:{a:'#f472b6',soft:'#2c1422',line:'#46203a'}, light:{a:'#db2777',soft:'#fdebf4',line:'#f8cbe2'}}
+  };
+  var DEFAULTS={accent:'red',fs:'1',dock:'left',motion:false};
+  var st=Object.assign({},DEFAULTS);
+  try{ var s=JSON.parse(localStorage.getItem('zp-ui')||'{}'); st=Object.assign(st,s); }catch(e){}
+
+  var root=document.documentElement, body=document.body;
+
+  function applyAccent(){
+    var def=ACCENTS[st.accent]||ACCENTS.red;
+    // set for both themes via inline style overrides keyed off current theme; update on theme change too
+    function setFor(theme){
+      var c=def[theme];
+      return c;
+    }
+    var theme=root.getAttribute('data-theme')==='light'?'light':'dark';
+    var c=def[theme];
+    root.style.setProperty('--accent',c.a);
+    root.style.setProperty('--accent-soft',c.soft);
+    root.style.setProperty('--accent-line',c.line);
+  }
+  function applyFs(){ root.style.setProperty('--font-scale',st.fs);
+    var v=document.getElementById('fsVal'); if(v) v.textContent=Math.round(parseFloat(st.fs)*100)+'%'; }
+  function applyDock(){ body.setAttribute('data-dock',st.dock); }
+  function applyMotion(){ body.classList.toggle('reduce-motion',!!st.motion);
+    if(st.motion && window.__termStop) window.__termStop(); }
+  function save(){ try{ localStorage.setItem('zp-ui',JSON.stringify(st)); }catch(e){} }
+  function syncUI(){
+    document.querySelectorAll('#swatches .swatch').forEach(function(el){
+      el.classList.toggle('sel', el.dataset.accent===st.accent); });
+    document.querySelectorAll('#fontseg button').forEach(function(el){
+      el.classList.toggle('sel', el.dataset.fs===st.fs); });
+    document.querySelectorAll('#dockseg button').forEach(function(el){
+      el.classList.toggle('sel', el.dataset.dock===st.dock); });
+    var mt=document.getElementById('motionToggle'); if(mt) mt.checked=!!st.motion;
+  }
+  function applyAll(){ applyAccent(); applyFs(); applyDock(); applyMotion(); syncUI(); }
+  applyAll();
+
+  // re-apply accent when theme toggles (different shade per theme)
+  var tb=document.getElementById('themeBtn');
+  if(tb) tb.addEventListener('click',function(){ setTimeout(applyAccent,0); });
+
+  // open / close panel
+  var panel=document.getElementById('settings'), ov=document.getElementById('setOverlay');
+  function open(){ panel.classList.add('on'); ov.classList.add('on'); }
+  function close(){ panel.classList.remove('on'); ov.classList.remove('on'); }
+  var ds=document.getElementById('dockSettings'); if(ds) ds.addEventListener('click',open);
+  document.getElementById('setClose').addEventListener('click',close);
+  ov.addEventListener('click',close);
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape' && panel.classList.contains('on')) close(); });
+
+  // controls
+  document.getElementById('swatches').addEventListener('click',function(e){
+    var s=e.target.closest('.swatch'); if(!s) return;
+    st.accent=s.dataset.accent; applyAccent(); syncUI(); save();
+  });
+  document.getElementById('fontseg').addEventListener('click',function(e){
+    var btn=e.target.closest('button'); if(!btn) return;
+    st.fs=btn.dataset.fs; applyFs(); syncUI(); save();
+  });
+  document.getElementById('dockseg').addEventListener('click',function(e){
+    var btn=e.target.closest('button'); if(!btn) return;
+    st.dock=btn.dataset.dock; applyDock(); syncUI(); save();
+  });
+  document.getElementById('motionToggle').addEventListener('change',function(e){
+    st.motion=e.target.checked; applyMotion(); save();
+  });
+  document.getElementById('setReset').addEventListener('click',function(){
+    st=Object.assign({},DEFAULTS); applyAll(); save();
+  });
+})();
+
+
+document.querySelectorAll('.copy').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var pre=btn.closest('.code').querySelector('pre');
+    navigator.clipboard.writeText(pre.innerText).then(function(){
+      var html=btn.innerHTML;
+      btn.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>Copied';
+      btn.classList.add('done');
+      setTimeout(function(){ btn.innerHTML=html; btn.classList.remove('done'); },1500);
+    });
+  });
+});
+
+(function(){
+  var links=Array.prototype.slice.call(document.querySelectorAll('.sidenav a[href^="#"], .tocrail a[href^="#"], .dock a[href^="#"]'));
+  var map={};
+  links.forEach(function(l){ var id=l.getAttribute('href').slice(1); (map[id]=map[id]||[]).push(l); });
+  var targets=Object.keys(map).map(function(id){return document.getElementById(id);}).filter(Boolean);
+  var obs=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        links.forEach(function(l){ l.classList.remove('active'); });
+        (map[e.target.id]||[]).forEach(function(l){ l.classList.add('active'); });
+      }
+    });
+  },{rootMargin:'-12% 0px -78% 0px'});
+  targets.forEach(function(t){ obs.observe(t); });
+})();
+
+(function(){
+  var body=document.getElementById('termBody');
+  if(!body) return;
+
+  // script: each step is a command line (typed) optionally followed by output lines (instant)
+  var steps=[
+    {cmd:'java -version', out:['openjdk version "21.0.3" 2024-04-16','OpenJDK Runtime Environment (build 21.0.3+9)']},
+    {cmd:'cd C:\\Program Files\\Apache Software Foundation\\Tomcat9\\webapps'},
+    {cmd:'curl -O https://www.zoho.com/people/downloads/ZAttendance.war',
+     out:['  % Total    % Received','100  4820k  100  4820k','ZAttendance.war  saved']},
+    {cmd:'net start Tomcat9ZohoPeople', out:['The Apache Tomcat 9.0 Tomcat9ZohoPeople service is starting.','The service was started successfully.']},
+    {cmd:'curl -s -o /dev/null -w "%{http_code}" http://localhost:8584/ZAttendance',
+     out:['200  — plugin page is live ✓']}
+  ];
+
+  var TYPE=42, AFTER_CMD=420, AFTER_OUT=300, START=350;
+  var timers=[], running=false;
+
+  function esc(s){return s.replace(/[&<>]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+  function hi(cmd){
+    // tokenize on spaces, keep simple bash highlighting
+    var parts=cmd.split(' ');
+    return parts.map(function(tok,i){
+      var t=esc(tok);
+      if(i===0) return '<span class="bin">'+t+'</span>';
+      if(/^-/.test(tok)) return '<span class="flag">'+t+'</span>';
+      if(/^https?:\/\//.test(tok)) return '<span class="url">'+t+'</span>';
+      if(/[\\\/]/.test(tok)||/^[A-Z]:\\/.test(tok)) return '<span class="path">'+t+'</span>';
+      return '<span class="cmd">'+t+'</span>';
+    }).join(' ');
+  }
+  function hiOut(line){
+    var t=esc(line);
+    t=t.replace(/(✓|saved|successfully|200)/g,'<span class="ok">$1</span>');
+    t=t.replace(/(\d+\s+package[s]?|OpenJDK[^<]*)/g,'<span class="pkg">$1</span>');
+    return t;
+  }
+  function clearTimers(){ timers.forEach(clearTimeout); timers=[]; }
+  function at(ms,fn){ timers.push(setTimeout(fn,ms)); }
+
+  function run(){
+    if(running) clearTimers();
+    running=true; body.innerHTML='';
+    var t=START;
+    steps.forEach(function(step){
+      // command line element
+      var line=document.createElement('div'); line.className='term-line';
+      var promptHtml='<span class="prompt">client@server</span>:<span class="tilde">~</span>$ ';
+      // type the command char by char
+      at(t,function(){
+        body.appendChild(line);
+        line.innerHTML=promptHtml+'<span class="typed"></span><span class="term-cursor"></span>';
+      });
+      var typed=step.cmd;
+      for(var c=0;c<typed.length;c++){
+        (function(c){
+          at(t + c*TYPE, function(){
+            var span=line.querySelector('.typed');
+            if(span){ span.innerHTML=hi(typed.slice(0,c+1)); body.scrollTop=body.scrollHeight; }
+          });
+        })(c);
+      }
+      t += typed.length*TYPE;
+      // remove cursor, settle command
+      at(t,function(){ var cur=line.querySelector('.term-cursor'); if(cur) cur.remove(); });
+      t += AFTER_CMD;
+      // output lines (instant, line by line)
+      if(step.out){
+        step.out.forEach(function(o){
+          at(t,function(){
+            var ol=document.createElement('div'); ol.className='term-line term-out';
+            ol.innerHTML=hiOut(o); body.appendChild(ol); body.scrollTop=body.scrollHeight;
+          });
+          t += AFTER_OUT;
+        });
+      }
+    });
+    // final prompt with blinking cursor
+    at(t,function(){
+      var line=document.createElement('div'); line.className='term-line';
+      line.innerHTML='<span class="prompt">client@server</span>:<span class="tilde">~</span>$ <span class="term-cursor"></span>';
+      body.appendChild(line); body.scrollTop=body.scrollHeight; running=false;
+    });
+  }
+
+  // render the whole session instantly (used when reduce-motion is on)
+  function renderInstant(){
+    clearTimers(); running=false; body.innerHTML='';
+    steps.forEach(function(step){
+      var line=document.createElement('div'); line.className='term-line';
+      line.innerHTML='<span class="prompt">client@server</span>:<span class="tilde">~</span>$ '+hi(step.cmd);
+      body.appendChild(line);
+      if(step.out) step.out.forEach(function(o){
+        var ol=document.createElement('div'); ol.className='term-line term-out';
+        ol.innerHTML=hiOut(o); body.appendChild(ol);
+      });
+    });
+    var fin=document.createElement('div'); fin.className='term-line';
+    fin.innerHTML='<span class="prompt">client@server</span>:<span class="tilde">~</span>$ <span class="term-cursor"></span>';
+    body.appendChild(fin);
+  }
+  function reduced(){ return document.body.classList.contains('reduce-motion'); }
+  // expose a stop/instant-render handle for the settings reduce-motion toggle
+  window.__termStop=function(){ renderInstant(); };
+
+  // run when scrolled into view (once)
+  var started=false;
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting && !started){ started=true;
+      if(reduced()){ renderInstant(); } else { run(); } } });
+  },{threshold:0.35});
+  io.observe(document.getElementById('terminal'));
+
+  var rb=document.getElementById('termReplay');
+  if(rb) rb.addEventListener('click',function(){
+    clearTimers();
+    if(reduced()){ renderInstant(); } else { run(); }
+  });
+})();
+
+(function(){
+  var dock=document.getElementById('dock');
+  if(!dock) return;
+  var items=Array.prototype.slice.call(dock.querySelectorAll('.dock-item'));
+  var BASE=42, MAX=58, R=90; // px sizes & influence radius
+  function apply(mouseY){
+    items.forEach(function(it){
+      var r=it.getBoundingClientRect();
+      var c=r.top+r.height/2;
+      var d=mouseY==null?Infinity:Math.abs(mouseY-c);
+      var t=Math.max(0,1-d/R);                 // 0..1 falloff
+      var size=BASE+(MAX-BASE)*t;
+      it.style.width=size+'px';
+      it.style.height=size+'px';
+      var icon=it.querySelector('svg');
+      if(icon){ var is=19+6*t; icon.style.width=is+'px'; icon.style.height=is+'px'; }
+    });
+  }
+  dock.addEventListener('mousemove',function(e){ apply(e.clientY); });
+  dock.addEventListener('mouseleave',function(){ apply(null); });
+  // dock search button opens palette
+  var ds=document.getElementById('dockSearch');
+  if(ds){ ds.addEventListener('click',function(){
+    var t=document.getElementById('searchTrigger'); if(t) t.click();
+  }); }
+})();
+
+(function(){
+  var overlay=document.getElementById('cmdk');
+  var input=document.getElementById('cmdkInput');
+  var results=document.getElementById('cmdkResults');
+  var trigger=document.getElementById('searchTrigger');
+  var sel=0,current=[];
+
+  var index=[];
+  document.querySelectorAll('section[id]').forEach(function(sec){
+    var h2=sec.querySelector('h2');
+    var title=h2?h2.textContent.replace(/^[!\d]+\s*/,'').trim():sec.id;
+    var sub=sec.querySelector('.sec-sub');
+    index.push({type:'Sections',title:title,sub:sub?sub.textContent.trim():'',id:sec.id,icon:'doc'});
+    sec.querySelectorAll('h3[id]').forEach(function(h3){
+      index.push({type:'Sections',title:h3.textContent.trim(),sub:'in '+title,id:h3.id,icon:'hash'});
+    });
+  });
+  document.querySelectorAll('#trouble .acc').forEach(function(acc){
+    acc.querySelectorAll('tbody tr').forEach(function(tr){
+      var q=tr.querySelector('.issue-q'); var fix=tr.children[1];
+      if(q){ index.push({type:'Errors & fixes',title:q.textContent.trim(),
+        sub:(fix?fix.textContent.trim():''),id:'trouble',icon:'bug',acc:acc}); }
+    });
+  });
+
+  function icoSvg(kind){
+    if(kind==='bug') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="8" y="6" width="8" height="14" rx="4"/><path d="M8 10H3m18 0h-5M8 14H4m16 0h-4M9 6l-2-3m8 3l2-3"/></svg>';
+    if(kind==='hash') return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/></svg>';
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6"/></svg>';
+  }
+  function score(q,t){
+    q=q.toLowerCase(); t=t.toLowerCase();
+    if(t.indexOf(q)>-1) return 100-t.indexOf(q);
+    var qi=0; for(var i=0;i<t.length&&qi<q.length;i++){ if(t[i]===q[qi]) qi++; }
+    return qi===q.length?1:-1;
+  }
+  function esc(s){return s.replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function hl(text,q){
+    if(!q) return esc(text);
+    var i=text.toLowerCase().indexOf(q.toLowerCase());
+    if(i<0) return esc(text);
+    return esc(text.slice(0,i))+'<mark>'+esc(text.slice(i,i+q.length))+'</mark>'+esc(text.slice(i+q.length));
+  }
+  function render(q){
+    var items;
+    if(!q){ items=index.slice(); }
+    else{
+      items=index.map(function(it){return{it:it,sc:Math.max(score(q,it.title),score(q,it.sub)*0.6)};})
+        .filter(function(x){return x.sc>0;}).sort(function(a,b){return b.sc-a.sc;})
+        .map(function(x){return x.it;});
+    }
+    current=items; sel=0;
+    if(!items.length){ results.innerHTML='<div class="cmdk-empty">No matches for &ldquo;'+esc(q)+'&rdquo;</div>'; return; }
+    var html='',lastCat=null;
+    items.forEach(function(it,i){
+      if(it.type!==lastCat){ html+='<div class="cmdk-cat">'+it.type+'</div>'; lastCat=it.type; }
+      html+='<div class="cmdk-item'+(i===0?' sel':'')+'" data-i="'+i+'">'+
+        '<span class="ci-ic">'+icoSvg(it.icon)+'</span>'+
+        '<span class="ci-tx"><div class="ci-t">'+hl(it.title,q)+'</div>'+
+        (it.sub?'<div class="ci-s">'+esc(it.sub)+'</div>':'')+'</span>'+
+        '<span class="ci-k">'+(it.icon==='bug'?'fix':'jump')+'</span></div>';
+    });
+    results.innerHTML=html;
+    Array.prototype.slice.call(results.querySelectorAll('.cmdk-item')).forEach(function(el){
+      el.addEventListener('click',function(){ go(parseInt(el.dataset.i,10)); });
+      el.addEventListener('mousemove',function(){ if(sel!==+el.dataset.i) setSel(+el.dataset.i); });
+    });
+  }
+  function setSel(i){
+    var els=results.querySelectorAll('.cmdk-item'); if(!els.length) return;
+    if(els[sel]) els[sel].classList.remove('sel');
+    sel=(i+els.length)%els.length;
+    els[sel].classList.add('sel'); els[sel].scrollIntoView({block:'nearest'});
+  }
+  function go(i){
+    var it=current[i]; if(!it) return; close();
+    if(it.acc){ it.acc.open=true; }
+    var el=document.getElementById(it.id);
+    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+  function open(){ overlay.classList.add('on'); input.value=''; render(''); setTimeout(function(){input.focus();},30); }
+  function close(){ overlay.classList.remove('on'); }
+  trigger.addEventListener('click',open);
+  overlay.addEventListener('click',function(e){ if(e.target===overlay) close(); });
+  input.addEventListener('input',function(){ render(input.value.trim()); });
+  document.addEventListener('keydown',function(e){
+    if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); overlay.classList.contains('on')?close():open(); return; }
+    if(!overlay.classList.contains('on')) return;
+    if(e.key==='Escape') close();
+    else if(e.key==='ArrowDown'){ e.preventDefault(); setSel(sel+1); }
+    else if(e.key==='ArrowUp'){ e.preventDefault(); setSel(sel-1); }
+    else if(e.key==='Enter'){ e.preventDefault(); go(sel); }
+  });
+})();
+</script>
+
+</body>
+</html>
